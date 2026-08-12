@@ -1,0 +1,60 @@
+.form-wrap{
+  max-width:760px;margin:0 auto;padding:8vh 6vw 10vh;
+}
+.case-header{margin-bottom:44px;}
+.case-id{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--amber);letter-spacing:.1em;margin-bottom:14px;}
+.form-wrap h2{font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:600;margin-bottom:10px;}
+.form-wrap .lede{color:var(--slate);font-size:15.5px;line-height:1.6;max-width:60ch;}
+
+.card{
+  background:var(--ink-2);
+  border:1px solid var(--line);
+  border-radius:3px;
+  padding:32px;
+  margin-bottom:20px;
+}
+.card-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--slate);
+  display:block;margin-bottom:20px;
+  padding-bottom:14px;border-bottom:1px solid var(--line);
+}
+.field-row{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px;}
+.field-row:last-child{margin-bottom:0;}
+.field{display:flex;flex-direction:column;gap:8px;}
+.field label{font-size:12.5px;color:var(--slate);font-family:'IBM Plex Mono',monospace;}
+.field input{
+  background:var(--ink);
+  border:1px solid var(--line-strong);
+  color:var(--paper-2);
+  padding:13px 14px;border-radius:2px;
+  font-size:14.5px;font-family:'IBM Plex Sans',sans-serif;
+  outline:none;
+}
+.field input::placeholder{color:var(--slate-dim);}
+.field input:focus{border-color:var(--amber);}
+
+.competitor-block{
+  padding:22px 0;
+  border-bottom:1px solid var(--line);
+}
+.competitor-block:last-of-type{border-bottom:none;padding-bottom:0;}
+.competitor-block:first-of-type{padding-top:0;}
+.competitor-heading{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.competitor-heading .num{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate);}
+.competitor-heading .req{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--amber-dim);letter-spacing:.06em;}
+
+.form-error{
+  font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--redact);
+  margin:6px 0 18px;min-height:18px;
+}
+
+.btn-block{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;border:none;}
+
+@media (max-width:720px){
+  .field-row{grid-template-columns:1fr;}
+}

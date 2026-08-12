@@ -1,0 +1,106 @@
+this is all code change it sent me 
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open a case — Competitor Intel</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="brand"><span class="dot"></span>Competitor Intel</div>
+    <a href="/" class="navlink-btn">← Back</a>
+  </nav>
+
+  <div class="form-wrap">
+    <div class="case-header">
+      <div class="case-id mono">CASE INTAKE — NEW FILE</div>
+      <h2>Open your case file</h2>
+      <p class="lede">Tell us who you are and who you're up against. Domains help us dig deeper but aren't required.</p>
+    </div>
+
+    <form id="intake-form">
+      <div class="card">
+        <span class="card-label">Subject — your company</span>
+        <div class="field-row">
+          <div class="field">
+            <label for="company-name">Company name</label>
+            <input type="text" id="company-name" placeholder="Acme Robotics" required>
+          </div>
+          <div class="field">
+            <label for="company-domain">Domain (optional)</label>
+            <input type="text" id="company-domain" placeholder="acme.com">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="card-label">Persons of interest — up to 3 competitors</span>
+
+        <div class="competitor-block">
+          <div class="competitor-heading">
+            <span class="num mono">SUBJECT 01</span>
+            <span class="req mono">REQUIRED</span>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="comp1-name">Competitor name</label>
+              <input type="text" id="comp1-name" placeholder="Rival Dynamics" required>
+            </div>
+            <div class="field">
+              <label for="comp1-domain">Domain (optional)</label>
+              <input type="text" id="comp1-domain" placeholder="rivaldynamics.com">
+            </div>
+          </div>
+        </div>
+
+        <div class="competitor-block">
+          <div class="competitor-heading">
+            <span class="num mono">SUBJECT 02</span>
+            <span class="req mono">OPTIONAL</span>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="comp2-name">Competitor name</label>
+              <input type="text" id="comp2-name" placeholder="Optional">
+            </div>
+            <div class="field">
+              <label for="comp2-domain">Domain (optional)</label>
+              <input type="text" id="comp2-domain" placeholder="Optional">
+            </div>
+          </div>
+        </div>
+
+        <div class="competitor-block">
+          <div class="competitor-heading">
+            <span class="num mono">SUBJECT 03</span>
+            <span class="req mono">OPTIONAL</span>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="comp3-name">Competitor name</label>
+              <input type="text" id="comp3-name" placeholder="Optional">
+            </div>
+            <div class="field">
+              <label for="comp3-domain">Domain (optional)</label>
+              <input type="text" id="comp3-domain" placeholder="Optional">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-error mono" id="form-error"></div>
+
+      <button type="submit" class="btn-primary btn-block">Begin investigation →</button>
+    </form>
+  </div>
+
+  <script src="{{ url_for('static', filename='form.js') }}"></script>
+</body>
+</html>
+```
