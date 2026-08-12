@@ -2,26 +2,49 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Competitor Intel</title>
-<style>
-  body{
-    background:#0E1420;
-    color:#F2EDE1;
-    font-family:sans-serif;
-    height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-  }
-  h1{font-weight:500;}
-  p{color:#8593A6;}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competitor Intel — Open a case on your market</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div>
-    <h1>Competitor Intel — server is running</h1>
-    <p>Phase 1 checkpoint. Phase 2 will replace this with the real landing page.</p>
+
+  <nav class="nav">
+    <div class="brand"><span class="dot"></span>Competitor Intel</div>
+    <a href="#" class="navlink-btn">Open a case</a>
+  </nav>
+
+  <div class="hero">
+    <div class="eyebrow">Field intelligence for competitive strategy</div>
+    <h1 class="headline">Know what they're planning <em>before</em> they announce it.</h1>
+    <p class="hero-sub">Give us your company and up to three competitors. We open a case, research each one, and hand you back a clear-eyed briefing — positioning, strengths, blind spots, and what to do about it.</p>
+    <div class="hero-actions">
+      <a href="#" class="btn-primary">Open a case file →</a>
+      <span class="hero-note">No signup. First briefing is free.</span>
+    </div>
   </div>
+
+  <div class="file-tabs">
+    <div class="file-tab">
+      <span class="tag mono">01 — Surveillance</span>
+      <h3>We research the field</h3>
+      <p>Every company and domain you enter gets investigated — public positioning, pricing signals, recent moves, the works.</p>
+    </div>
+    <div class="file-tab">
+      <span class="tag mono">02 — Analysis</span>
+      <h3>AI compiles the case</h3>
+      <p>An analyst model reads everything it finds and distills it into strengths, weaknesses, and a threat assessment per rival.</p>
+    </div>
+    <div class="file-tab">
+      <span class="tag mono">03 — Briefing</span>
+      <h3>You get a clean report</h3>
+      <p>A comparison matrix and straight-talk recommendations — what to defend, what to attack, what to ignore.</p>
+    </div>
+  </div>
+
+  <footer class="landing-footer">
+    <span>Competitor Intel — case files compiled on demand.</span>
+    <span>Analysis via AI web research, not raw scraping.</span>
+  </footer>
+
 </body>
 </html>
