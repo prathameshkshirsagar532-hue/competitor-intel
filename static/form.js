@@ -104,9 +104,15 @@ function runInvestigation(input){
     done = true;
     clearInterval(stepInterval);
     clearInterval(fillInterval);
-    statusEl.textContent = 'INVESTIGATION FAILED';
-    statusEl.style.color = 'var(--redact)';
-    stepsList.innerHTML += `<div style="margin-top:16px; color:var(--redact); font-family:'IBM Plex Mono',monospace; font-size:13px;">Error: ${err.message}</div>`;
+
+    document.getElementById('progress-screen').style.display = 'none';
+    document.getElementById('error-screen').style.display = 'block';
+    document.getElementById('error-message').textContent = err.message;
+
+    document.getElementById('retry-btn').onclick = function(){
+      document.getElementById('error-screen').style.display = 'none';
+      runInvestigation(input);
+    };
   });
 }
 function esc(s){
@@ -216,8 +222,32 @@ function renderReport(data, input){
   html += `
     <div class="report-actions">
       <a href="/form" class="btn-primary">Open a new case →</a>
+      <button class="btn-secondary" onclick="copyReport()">Copy briefing as text</button>
     </div>
+    <div id="copy-confirm" class="mono" style="margin-top:14px;font-size:12px;color:var(--slate-dim);"></div>
   `;
 
   document.getElementById('report-body').innerHTML = html;
+  window.__lastReportData = data;
+}
+
+function copyReport(){
+  const data = window.__lastReportData;
+  if(!data) return;
+  let text = `CASE FILE — ${data.company.name}\n\n${data.company.summary}\n\n`;
+  (data.competitors||[]).forEach(c => {
+    text += `--- ${c.name} (${c.domain||''}) — Threat: ${c.threat_level} ---\n`;
+    text += `Positioning: ${c.positioning}\n`;
+    text += `Strengths: ${(c.strengths||[]).join('; ')}\n`;
+    text += `Weaknesses: ${(c.weaknesses||[]).join('; ')}\n`;
+    text += `Recent moves: ${(c.recent_moves||[]).join('; ')}\n`;
+    text += `Pricing: ${c.pricing_signal}\n\n`;
+  });
+  text += `Recommendations:\n` + (data.recommendations||[]).map((r,i)=>`${i+1}. ${r}`).join('\n');
+
+  navigator.clipboard.writeText(text).then(()=>{
+    document.getElementById('copy-confirm').textContent = 'Copied to clipboard.';
+  }).catch(()=>{
+    document.getElementById('copy-confirm').textContent = 'Could not copy — select and copy manually.';
+  });
 }

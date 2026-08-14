@@ -114,6 +114,21 @@ this is all code change it sent me
  <div id="result-screen" style="display:none;">
     <div class="report-wrap" id="report-body"></div>
   </div>
+
+  <div id="error-screen" style="display:none;">
+    <div class="report-wrap" style="text-align:center; padding-top:12vh;">
+      <div class="case-id mono" id="error-case-id">INVESTIGATION STALLED</div>
+      <h2 style="font-family:'Space Grotesk',sans-serif; font-size:30px; margin:14px 0 24px;">The trail went cold</h2>
+      <div style="background:rgba(192,57,43,0.08); border:1px solid rgba(192,57,43,0.4); border-radius:3px; padding:24px 28px; max-width:520px; margin:0 auto 32px; text-align:left;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--redact); margin-bottom:8px;">Error detail</div>
+        <div id="error-message" style="font-size:14px; line-height:1.6; color:var(--paper-2);"></div>
+      </div>
+      <div class="report-actions" style="justify-content:center;">
+        <button class="btn-primary" id="retry-btn">Retry investigation →</button>
+        <a href="/form" class="btn-secondary">Edit case details</a>
+      </div>
+    </div>
+  </div>
   <script src="{{ url_for('static', filename='form.js') }}"></script>
 </body>
 </html>

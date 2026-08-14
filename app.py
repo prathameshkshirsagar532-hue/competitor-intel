@@ -35,6 +35,7 @@ def analyze():
     if not company_name or not competitors:
         return jsonify({"error": "Missing company name or competitors"}), 400
 
+
     # TEMPORARY MOCK DATA — replace this block with the real Gemini call later.
     time.sleep(3)  # simulates research taking a moment
 
