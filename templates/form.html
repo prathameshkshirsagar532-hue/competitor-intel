@@ -111,12 +111,9 @@ this is all code change it sent me
     <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill"></div></div>
   </div>
 
-  <div id="result-screen" style="display:none; max-width:700px; margin:0 auto; padding:6vh 6vw;">
-    <div class="case-id mono">CASE FILE READY</div>
-    <h2 style="font-family:'Space Grotesk',sans-serif; font-size:28px; margin:14px 0 24px;">Raw case data (Phase 6 will make this beautiful)</h2>
-    <pre id="result-json" style="background:var(--ink-2); border:1px solid var(--line); padding:24px; border-radius:3px; white-space:pre-wrap; font-size:13px; color:var(--paper-2); font-family:'IBM Plex Mono',monospace;"></pre>
+ <div id="result-screen" style="display:none;">
+    <div class="report-wrap" id="report-body"></div>
   </div>
-
   <script src="{{ url_for('static', filename='form.js') }}"></script>
 </body>
 </html>

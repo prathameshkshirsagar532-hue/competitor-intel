@@ -97,7 +97,7 @@ function runInvestigation(input){
     setTimeout(() => {
       document.getElementById('progress-screen').style.display = 'none';
       document.getElementById('result-screen').style.display = 'block';
-      document.getElementById('result-json').textContent = JSON.stringify(data, null, 2);
+      renderReport(data, input);
     }, 500);
   })
   .catch(err => {
@@ -108,4 +108,116 @@ function runInvestigation(input){
     statusEl.style.color = 'var(--redact)';
     stepsList.innerHTML += `<div style="margin-top:16px; color:var(--redact); font-family:'IBM Plex Mono',monospace; font-size:13px;">Error: ${err.message}</div>`;
   });
+}
+function esc(s){
+  if(s === undefined || s === null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+function genCaseId(){
+  const n = Math.floor(1000 + Math.random()*8999);
+  const y = new Date().getFullYear();
+  return 'CI-' + y + '-' + n;
+}
+
+function renderReport(data, input){
+  const caseId = genCaseId();
+  const company = data.company || {name: input.companyName, summary: ''};
+  const competitors = data.competitors || [];
+  const matrix = data.comparison_matrix || {dimensions: [], rows: {}};
+  const recs = data.recommendations || [];
+
+  const today = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+
+  let html = '';
+
+  html += `
+    <div class="report-head">
+      <div>
+        <div class="case-id mono">${esc(caseId)} — CASE FILE COMPLETE</div>
+        <h2>${esc(company.name)} vs. ${competitors.length} ${competitors.length===1?'competitor':'competitors'}</h2>
+      </div>
+      <div class="stamp-date">Filed ${today}<br>Status: Closed</div>
+    </div>
+  `;
+
+  html += `
+    <div class="summary-panel">
+      <span class="card-label mono">Executive summary</span>
+      <p>${esc(company.summary || 'No summary available.')}</p>
+    </div>
+  `;
+
+  html += `<div class="section-title">Competitor profiles</div>`;
+  html += `<div class="profiles">`;
+  competitors.forEach(c => {
+    const threat = ['Low','Medium','High'].includes(c.threat_level) ? c.threat_level : 'Medium';
+    const strengths = (c.strengths || []).slice(0,3);
+    const weaknesses = (c.weaknesses || []).slice(0,3);
+    const moves = (c.recent_moves || []).slice(0,3);
+    html += `
+      <div class="profile-card">
+        <div class="profile-top">
+          <div>
+            <div class="profile-name">${esc(c.name)}</div>
+            <div class="profile-domain mono">${esc(c.domain || '')}</div>
+          </div>
+          <div class="threat-stamp threat-${threat}">Threat: ${threat}</div>
+        </div>
+        <div class="positioning">${esc(c.positioning || '')}</div>
+        <div class="two-col">
+          <div>
+            <div class="mini-label">Strengths</div>
+            <ul class="mini-list strengths">${strengths.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+          </div>
+          <div>
+            <div class="mini-label">Weaknesses</div>
+            <ul class="mini-list weaknesses">${weaknesses.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+          </div>
+        </div>
+        ${moves.length ? `<div style="margin-bottom:20px;">
+          <div class="mini-label">Recent moves</div>
+          <ul class="mini-list moves">${moves.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+        </div>` : ''}
+        <div class="pricing-line"><span class="mono-tag mono">PRICING SIGNAL —</span> ${esc(c.pricing_signal || 'Not available')}</div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+
+  if(matrix.dimensions && matrix.dimensions.length){
+    html += `<div class="section-title">Comparison matrix</div>`;
+    html += `<div class="matrix-wrap"><table class="matrix"><thead><tr><th></th>`;
+    matrix.dimensions.forEach(d => html += `<th>${esc(d)}</th>`);
+    html += `</tr></thead><tbody>`;
+
+    const rowNames = Object.keys(matrix.rows || {});
+    rowNames.forEach(name => {
+      const isYou = name.toLowerCase() === (company.name||'').toLowerCase();
+      html += `<tr class="${isYou ? 'you':''}"><td class="rowhead">${esc(name)}${isYou ? ' (you)' : ''}</td>`;
+      (matrix.rows[name]||[]).forEach(v => html += `<td>${esc(v)}</td>`);
+      html += `</tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  if(recs.length){
+    html += `
+      <div class="memo">
+        <div class="memo-badge">Analyst recommends</div>
+        <span class="card-label mono">Recommendations</span>
+        <ol>${recs.map(r => `<li>${esc(r)}</li>`).join('')}</ol>
+      </div>
+    `;
+  }
+
+  html += `
+    <div class="report-actions">
+      <a href="/form" class="btn-primary">Open a new case →</a>
+    </div>
+  `;
+
+  document.getElementById('report-body').innerHTML = html;
 }
