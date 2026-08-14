@@ -58,3 +58,68 @@
 @media (max-width:720px){
   .field-row{grid-template-columns:1fr;}
 }
+/* ===== PROGRESS SCREEN ===== */
+.progress-wrap{
+  max-width:640px;margin:0 auto;
+  min-height:70vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6vh 6vw;
+  text-align:center;
+}
+.radar{
+  width:180px;height:180px;border-radius:50%;
+  border:1px solid var(--line-strong);
+  position:relative;margin-bottom:44px;
+}
+.radar::before, .radar::after{
+  content:'';position:absolute;border-radius:50%;border:1px solid var(--line);
+}
+.radar::before{inset:28px;}
+.radar::after{inset:56px;}
+.radar-sweep{
+  position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg, rgba(232,163,61,0.55), transparent 40%);
+  animation:spin 2.4s linear infinite;
+}
+.radar-core{
+  position:absolute;top:50%;left:50%;width:6px;height:6px;
+  background:var(--amber);border-radius:50%;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 12px 3px rgba(232,163,61,0.5);
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.progress-status{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;color:var(--amber);letter-spacing:.06em;
+  margin-bottom:10px;min-height:18px;
+}
+.progress-wrap h2{
+  font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:600;margin-bottom:36px;
+}
+.steps{width:100%;text-align:left;margin-bottom:20px;}
+.step{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 0;border-bottom:1px solid var(--line);
+  font-size:14px;color:var(--slate-dim);
+  transition:color .3s ease;
+}
+.step:last-child{border-bottom:none;}
+.step .mark{
+  width:18px;height:18px;border-radius:50%;
+  border:1px solid var(--line-strong);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:11px;
+  transition:all .25s ease;
+}
+.step.active{color:var(--paper-2);}
+.step.active .mark{border-color:var(--amber);color:var(--amber);}
+.step.done{color:var(--slate);}
+.step.done .mark{background:var(--amber);border-color:var(--amber);color:var(--ink);}
+.progress-bar-track{
+  width:100%;height:2px;background:var(--line);margin-top:14px;position:relative;overflow:hidden;
+}
+.progress-bar-fill{
+  position:absolute;left:0;top:0;height:100%;background:var(--amber);
+  width:4%;transition:width .6s ease;
+}
