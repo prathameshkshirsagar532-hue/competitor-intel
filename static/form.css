@@ -210,3 +210,35 @@ table.matrix tr.you td.rowhead{color:var(--amber);}
 @media (max-width:720px){
   .two-col{grid-template-columns:1fr;}
 }
+/* ===== RECENT CASES ===== */
+.recent-cases{
+  max-width:760px;margin:0 auto;padding:24px 6vw 0;
+}
+.recent-cases-title{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--slate);margin-bottom:12px;
+}
+.recent-case-item{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--ink-2);border:1px solid var(--line);border-radius:2px;
+  padding:14px 18px;margin-bottom:8px;cursor:pointer;
+  transition:border-color .15s ease;
+}
+.recent-case-item:hover{border-color:var(--amber);}
+.recent-case-name{font-size:14px;color:var(--paper-2);}
+.recent-case-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate-dim);}
+
+/* ===== EXPORT BUTTONS ===== */
+.export-buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;}
+.btn-export{
+  background:transparent;border:1px solid var(--line-strong);color:var(--paper-2);
+  font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;
+  padding:11px 18px;border-radius:2px;cursor:pointer;
+}
+.btn-export:hover{border-color:var(--amber);color:var(--amber);}
+
+/* ===== LONG WAIT NOTE ===== */
+.wait-note{
+  font-size:12px;color:var(--slate-dim);margin-top:16px;
+  font-family:'IBM Plex Mono',monospace;min-height:16px;
+}
