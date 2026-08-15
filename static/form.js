@@ -1,3 +1,57 @@
+// ===== RECENT CASES (localStorage) =====
+function getRecentCases(){
+  try{
+    return JSON.parse(localStorage.getItem('recentCases') || '[]');
+  }catch(e){
+    return [];
+  }
+}
+
+function saveRecentCase(input, data){
+  const cases = getRecentCases();
+  cases.unshift({
+    companyName: input.companyName,
+    date: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
+    input: input,
+    data: data
+  });
+  const trimmed = cases.slice(0, 5);
+  localStorage.setItem('recentCases', JSON.stringify(trimmed));
+}
+
+function renderRecentCases(){
+  const cases = getRecentCases();
+  const section = document.getElementById('recent-cases-section');
+  const list = document.getElementById('recent-cases-list');
+  if(!section || !list) return;
+
+  if(cases.length === 0){
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  list.innerHTML = cases.map((c, i) => `
+    <div class="recent-case-item" onclick="reopenCase(${i})">
+      <span class="recent-case-name">${esc(c.companyName)}</span>
+      <span class="recent-case-date mono">${esc(c.date)}</span>
+    </div>
+  `).join('');
+}
+
+function reopenCase(index){
+  const cases = getRecentCases();
+  const c = cases[index];
+  if(!c) return;
+  document.getElementById('intake-form').closest('.form-wrap').style.display = 'none';
+  document.getElementById('progress-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'block';
+  renderReport(c.data, c.input);
+}
+
+document.addEventListener('DOMContentLoaded', renderRecentCases);
+
+// ===== FORM SUBMIT =====
 document.getElementById('intake-form').addEventListener('submit', function(e){
   e.preventDefault();
   const errorEl = document.getElementById('form-error');
@@ -25,12 +79,10 @@ document.getElementById('intake-form').addEventListener('submit', function(e){
 });
 
 function runInvestigation(input){
-  // Hide the form, show the progress screen
   document.getElementById('intake-form').closest('.form-wrap').style.display = 'none';
+  document.getElementById('recent-cases-section').style.display = 'none';
   document.getElementById('progress-screen').style.display = 'flex';
 
-  // These messages describe what's actually happening on the backend right now —
-  // so if something breaks, you know exactly which stage to debug.
   const stepDefs = [
     'Sending case details to the backend (/api/analyze)',
     'Backend is building the research prompt',
@@ -46,10 +98,12 @@ function runInvestigation(input){
 
   const statusEl = document.getElementById('progress-status');
   const fillEl = document.getElementById('progress-fill');
+  const waitNoteEl = document.getElementById('wait-note');
 
   let stepIndex = 0;
   let fakeProgress = 4;
   let done = false;
+  let elapsedSeconds = 0;
 
   document.getElementById('step-0').classList.add('active');
   statusEl.textContent = stepDefs[0].toUpperCase();
@@ -71,6 +125,16 @@ function runInvestigation(input){
     }
   }, 400);
 
+  const waitInterval = setInterval(() => {
+    elapsedSeconds += 1;
+    if(elapsedSeconds >= 20 && !done){
+      waitNoteEl.textContent = 'Taking longer than usual — still working, hang tight...';
+    }
+    if(elapsedSeconds >= 45 && !done){
+      waitNoteEl.textContent = 'This is unusually slow. The AI service may be under heavy load.';
+    }
+  }, 1000);
+
   fetch('/api/analyze', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -86,6 +150,7 @@ function runInvestigation(input){
     done = true;
     clearInterval(stepInterval);
     clearInterval(fillInterval);
+    clearInterval(waitInterval);
     stepDefs.forEach((_,i) => {
       const el = document.getElementById('step-'+i);
       el.classList.remove('active');
@@ -93,6 +158,8 @@ function runInvestigation(input){
     });
     fillEl.style.width = '100%';
     statusEl.textContent = 'CASE FILE READY';
+
+    saveRecentCase(input, data);
 
     setTimeout(() => {
       document.getElementById('progress-screen').style.display = 'none';
@@ -104,9 +171,190 @@ function runInvestigation(input){
     done = true;
     clearInterval(stepInterval);
     clearInterval(fillInterval);
+    clearInterval(waitInterval);
 
     document.getElementById('progress-screen').style.display = 'none';
     document.getElementById('error-screen').style.display = 'block';
+    document.getElementById('error-message').textContent = err.message;
+
+    document.getElementById('retry-btn').onclick = function(){
+      document.getElementById('error-screen').style.display = 'none';
+      runInvestigation(input);
+    };
+  });
+}
+
+// ===== REPORT RENDERING =====
+function esc(s){
+  if(s === undefined || s === null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+function genCaseId(){
+  const n = Math.floor(1000 + Math.random()*8999);
+  const y = new Date().getFullYear();
+  return 'CI-' + y + '-' + n;
+}
+
+function renderReport(data, input){
+  const caseId = genCaseId();
+  const company = data.company || {name: input.companyName, summary: ''};
+  const competitors = data.competitors || [];
+  const matrix = data.comparison_matrix || {dimensions: [], rows: {}};
+  const recs = data.recommendations || [];
+
+  const today = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+
+  let html = '';
+
+  html += `
+    <div class="report-head">
+      <div>
+        <div class="case-id mono">${esc(caseId)} — CASE FILE COMPLETE</div>
+        <h2>${esc(company.name)} vs. ${competitors.length} ${competitors.length===1?'competitor':'competitors'}</h2>
+      </div>
+      <div class="stamp-date">Filed ${today}<br>Status: Closed</div>
+    </div>
+  `;
+
+  html += `
+    <div class="summary-panel">
+      <span class="card-label mono">Executive summary</span>
+      <p>${esc(company.summary || 'No summary available.')}</p>
+    </div>
+  `;
+
+  html += `<div class="section-title">Competitor profiles</div>`;
+  html += `<div class="profiles">`;
+  competitors.forEach(c => {
+    const threat = ['Low','Medium','High'].includes(c.threat_level) ? c.threat_level : 'Medium';
+    const strengths = (c.strengths || []).slice(0,3);
+    const weaknesses = (c.weaknesses || []).slice(0,3);
+    const moves = (c.recent_moves || []).slice(0,3);
+    html += `
+      <div class="profile-card">
+        <div class="profile-top">
+          <div>
+            <div class="profile-name">${esc(c.name)}</div>
+            <div class="profile-domain mono">${esc(c.domain || '')}</div>
+          </div>
+          <div class="threat-stamp threat-${threat}">Threat: ${threat}</div>
+        </div>
+        <div class="positioning">${esc(c.positioning || '')}</div>
+        <div class="two-col">
+          <div>
+            <div class="mini-label">Strengths</div>
+            <ul class="mini-list strengths">${strengths.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+          </div>
+          <div>
+            <div class="mini-label">Weaknesses</div>
+            <ul class="mini-list weaknesses">${weaknesses.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+          </div>
+        </div>
+        ${moves.length ? `<div style="margin-bottom:20px;">
+          <div class="mini-label">Recent moves</div>
+          <ul class="mini-list moves">${moves.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+        </div>` : ''}
+        <div class="pricing-line"><span class="mono-tag mono">PRICING SIGNAL —</span> ${esc(c.pricing_signal || 'Not available')}</div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+
+  if(matrix.dimensions && matrix.dimensions.length){
+    html += `<div class="section-title">Comparison matrix</div>`;
+    html += `<div class="matrix-wrap"><table class="matrix"><thead><tr><th></th>`;
+    matrix.dimensions.forEach(d => html += `<th>${esc(d)}</th>`);
+    html += `</tr></thead><tbody>`;
+
+    const rowNames = Object.keys(matrix.rows || {});
+    rowNames.forEach(name => {
+      const isYou = name.toLowerCase() === (company.name||'').toLowerCase();
+      html += `<tr class="${isYou ? 'you':''}"><td class="rowhead">${esc(name)}${isYou ? ' (you)' : ''}</td>`;
+      (matrix.rows[name]||[]).forEach(v => html += `<td>${esc(v)}</td>`);
+      html += `</tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  if(recs.length){
+    html += `
+      <div class="memo">
+        <div class="memo-badge">Analyst recommends</div>
+        <span class="card-label mono">Recommendations</span>
+        <ol>${recs.map(r => `<li>${esc(r)}</li>`).join('')}</ol>
+      </div>
+    `;
+  }
+
+  html += `
+    <div class="report-actions">
+      <a href="/form" class="btn-primary">Open a new case →</a>
+      <button class="btn-secondary" onclick="copyReport()">Copy briefing as text</button>
+    </div>
+    <div class="export-buttons">
+      <button class="btn-export" onclick="downloadExport('pdf')">Download PDF</button>
+      <button class="btn-export" onclick="downloadExport('docx')">Download Word</button>
+    </div>
+    <div id="copy-confirm" class="mono" style="margin-top:14px;font-size:12px;color:var(--slate-dim);"></div>
+  `;
+
+  document.getElementById('report-body').innerHTML = html;
+  window.__lastReportData = data;
+}
+
+// ===== COPY AS TEXT =====
+function copyReport(){
+  const data = window.__lastReportData;
+  if(!data) return;
+  let text = `CASE FILE — ${data.company.name}\n\n${data.company.summary}\n\n`;
+  (data.competitors||[]).forEach(c => {
+    text += `--- ${c.name} (${c.domain||''}) — Threat: ${c.threat_level} ---\n`;
+    text += `Positioning: ${c.positioning}\n`;
+    text += `Strengths: ${(c.strengths||[]).join('; ')}\n`;
+    text += `Weaknesses: ${(c.weaknesses||[]).join('; ')}\n`;
+    text += `Recent moves: ${(c.recent_moves||[]).join('; ')}\n`;
+    text += `Pricing: ${c.pricing_signal}\n\n`;
+  });
+  text += `Recommendations:\n` + (data.recommendations||[]).map((r,i)=>`${i+1}. ${r}`).join('\n');
+
+  navigator.clipboard.writeText(text).then(()=>{
+    document.getElementById('copy-confirm').textContent = 'Copied to clipboard.';
+  }).catch(()=>{
+    document.getElementById('copy-confirm').textContent = 'Could not copy — select and copy manually.';
+  });
+}
+
+// ===== PDF / DOCX DOWNLOAD =====
+function downloadExport(type){
+  const data = window.__lastReportData;
+  if(!data) return;
+
+  fetch(`/api/export/${type}`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  })
+  .then(res => {
+    if(!res.ok) throw new Error('Export failed');
+    return res.blob();
+  })
+  .then(blob => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = type === 'pdf' ? 'case_file.pdf' : 'case_file.docx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  })
+  .catch(err => {
+    document.getElementById('copy-confirm').textContent = 'Download failed: ' + err.message;
+  });
+}    document.getElementById('error-screen').style.display = 'block';
     document.getElementById('error-message').textContent = err.message;
 
     document.getElementById('retry-btn').onclick = function(){
