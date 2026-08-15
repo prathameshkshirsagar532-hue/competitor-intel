@@ -1,9 +1,13 @@
 import os
 import json
 import re
+import io
 import requests
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 from dotenv import load_dotenv
+from fpdf import FPDF
+from docx import Document
+from docx.shared import Pt, RGBColor
 
 load_dotenv()
 
@@ -106,6 +110,103 @@ Competitors to investigate: {comp_list}."""
         return jsonify({"error": f"Could not parse AI response as JSON: {str(e)}", "raw_text": full_text}), 502
 
 
+def build_report_lines(data):
+    """Turns report JSON into a flat list of (type, text) lines for export."""
+    lines = []
+    company = data.get("company", {})
+    lines.append(("h1", f"Case File — {company.get('name', '')}"))
+    lines.append(("p", company.get("summary", "")))
+    lines.append(("h2", "Competitor Profiles"))
+
+    for c in data.get("competitors", []):
+        lines.append(("h3", f"{c.get('name','')} ({c.get('domain','')}) — Threat: {c.get('threat_level','')}"))
+        lines.append(("p", f"Positioning: {c.get('positioning','')}"))
+        lines.append(("p", "Strengths: " + "; ".join(c.get("strengths", []))))
+        lines.append(("p", "Weaknesses: " + "; ".join(c.get("weaknesses", []))))
+        lines.append(("p", "Recent moves: " + "; ".join(c.get("recent_moves", []))))
+        lines.append(("p", f"Pricing: {c.get('pricing_signal','')}"))
+
+    recs = data.get("recommendations", [])
+    if recs:
+        lines.append(("h2", "Recommendations"))
+        for i, r in enumerate(recs, 1):
+            lines.append(("p", f"{i}. {r}"))
+
+    return lines
+
+
+@app.route("/api/export/pdf", methods=["POST"])
+def export_pdf():
+    data = request.get_json()
+    lines = build_report_lines(data)
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    for kind, text in lines:
+        safe_text = text.encode("latin-1", "replace").decode("latin-1")
+        if kind == "h1":
+            pdf.set_font("Helvetica", "B", 18)
+            pdf.multi_cell(0, 10, safe_text)
+            pdf.ln(2)
+        elif kind == "h2":
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.ln(4)
+            pdf.multi_cell(0, 8, safe_text)
+        elif kind == "h3":
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.ln(3)
+            pdf.multi_cell(0, 7, safe_text)
+        else:
+            pdf.set_font("Helvetica", "", 11)
+            pdf.multi_cell(0, 6, safe_text)
+            pdf.ln(1)
+
+    pdf_bytes = bytes(pdf.output())
+    buffer = io.BytesIO(pdf_bytes)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="case_file.pdf",
+        mimetype="application/pdf",
+    )
+
+
+@app.route("/api/export/docx", methods=["POST"])
+def export_docx():
+    data = request.get_json()
+    lines = build_report_lines(data)
+
+    doc = Document()
+
+    for kind, text in lines:
+        if kind == "h1":
+            h = doc.add_heading(text, level=1)
+        elif kind == "h2":
+            doc.add_heading(text, level=2)
+        elif kind == "h3":
+            doc.add_heading(text, level=3)
+        else:
+            doc.add_paragraph(text)
+
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="case_file.docx",
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+
+
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host="0.0.0.0", port=port)
+EOFif __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=False, host="0.0.0.0", port=port)
