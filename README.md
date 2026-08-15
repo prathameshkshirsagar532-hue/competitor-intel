@@ -2,8 +2,7 @@
 
 An advanced, dossier-themed **Competitor Intelligence & Market Analysis Tool** that leverages **Google Gemini AI** to generate deep competitive insights. Users can input their company along with up to 3 competitors to receive a structured, analytical intelligence report featuring executive summaries, threat assessments, and strategic recommendation memos.
 
-🌐 **Live Demo:** [Insert Your Render Link Here](https://onrender.com)
-
+🌐 **Live Demo:** https://competitor-intel-fo3y.onrender.com/form?
 ---
 
 ## 🚀 Key Features (7-Phase Architecture)
