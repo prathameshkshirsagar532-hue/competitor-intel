@@ -47,7 +47,15 @@ def analyze():
     prompt = f"""You are a competitive intelligence analyst. Use your knowledge to research the following company and its competitors, then respond with ONLY valid JSON — no markdown fences, no commentary before or after — matching exactly this schema:
 
 {{
-  "company": {{"name": string, "summary": string (max 20 words)}},
+  "company": {{
+    "name": string,
+    "summary": string (max 20 words),
+    "domain": string,
+    "threat_level": "Low" | "Medium" | "High" (your own market strength: Low=weak, High=strong),
+    "positioning": string (max 22 words),
+    "strengths": [string, string] (max 7 words each),
+    "weaknesses": [string, string] (max 7 words each)
+  }},
   "competitors": [
     {{
       "name": string,
