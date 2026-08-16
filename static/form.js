@@ -198,6 +198,51 @@ function genCaseId(){
   return 'CI-' + y + '-' + n;
 }
 
+function logoUrl(domain){
+  if(!domain) return '';
+  return `https://logo.clearbit.com/${domain}`;
+}
+
+function buildProfileCard(c, isYou){
+  const threat = ['Low','Medium','High'].includes(c.threat_level) ? c.threat_level : 'Medium';
+  const strengths = (c.strengths || []).slice(0,3);
+  const weaknesses = (c.weaknesses || []).slice(0,3);
+  const moves = (c.recent_moves || []).slice(0,3);
+  const domain = c.domain || '';
+  const logo = domain ? `<img class="profile-logo" src="${logoUrl(domain)}" onerror="this.style.display='none'" alt="">` : '';
+
+  return `
+    <div class="profile-card${isYou ? ' you-card' : ''}">
+      <div class="profile-top">
+        <div class="profile-name-row">
+          ${logo}
+          <div>
+            <div class="profile-name">${esc(c.name)}</div>
+            <div class="profile-domain mono">${esc(domain)}</div>
+          </div>
+        </div>
+        <div class="threat-stamp threat-${threat}">Threat: ${threat}</div>
+      </div>
+      <div class="positioning">${esc(c.positioning || '')}</div>
+      <div class="two-col">
+        <div>
+          <div class="mini-label">Strengths</div>
+          <ul class="mini-list strengths">${strengths.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+        </div>
+        <div>
+          <div class="mini-label">Weaknesses</div>
+          <ul class="mini-list weaknesses">${weaknesses.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+        </div>
+      </div>
+      ${moves.length ? `<div style="margin-bottom:20px;">
+        <div class="mini-label">Recent moves</div>
+        <ul class="mini-list moves">${moves.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+      </div>` : ''}
+      ${c.pricing_signal ? `<div class="pricing-line"><span class="mono-tag mono">PRICING SIGNAL —</span> ${esc(c.pricing_signal)}</div>` : ''}
+    </div>
+  `;
+}
+
 function renderReport(data, input){
   const caseId = genCaseId();
   const company = data.company || {name: input.companyName, summary: ''};
@@ -227,40 +272,11 @@ function renderReport(data, input){
     </div>
   `;
 
-  html += `<div class="section-title">Competitor profiles</div>`;
+  html += `<div class="section-title">Head-to-head profiles</div>`;
   html += `<div class="profiles">`;
+  html += buildProfileCard({...company, domain: company.domain || input.companyDomain}, true);
   competitors.forEach(c => {
-    const threat = ['Low','Medium','High'].includes(c.threat_level) ? c.threat_level : 'Medium';
-    const strengths = (c.strengths || []).slice(0,3);
-    const weaknesses = (c.weaknesses || []).slice(0,3);
-    const moves = (c.recent_moves || []).slice(0,3);
-    html += `
-      <div class="profile-card">
-        <div class="profile-top">
-          <div>
-            <div class="profile-name">${esc(c.name)}</div>
-            <div class="profile-domain mono">${esc(c.domain || '')}</div>
-          </div>
-          <div class="threat-stamp threat-${threat}">Threat: ${threat}</div>
-        </div>
-        <div class="positioning">${esc(c.positioning || '')}</div>
-        <div class="two-col">
-          <div>
-            <div class="mini-label">Strengths</div>
-            <ul class="mini-list strengths">${strengths.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
-          </div>
-          <div>
-            <div class="mini-label">Weaknesses</div>
-            <ul class="mini-list weaknesses">${weaknesses.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
-          </div>
-        </div>
-        ${moves.length ? `<div style="margin-bottom:20px;">
-          <div class="mini-label">Recent moves</div>
-          <ul class="mini-list moves">${moves.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
-        </div>` : ''}
-        <div class="pricing-line"><span class="mono-tag mono">PRICING SIGNAL —</span> ${esc(c.pricing_signal || 'Not available')}</div>
-      </div>
-    `;
+    html += buildProfileCard(c, false);
   });
   html += `</div>`;
 
@@ -330,10 +346,10 @@ function renderReport(data, input){
 
   document.getElementById('report-body').innerHTML = html;
   window.__lastReportData = data;
-  renderCharts(competitors);
+  renderCharts(company, competitors);
 }
 
-function renderCharts(competitors){
+function renderCharts(company, competitors){
   if(typeof Chart === 'undefined' || competitors.length === 0) return;
 
   const threatMap = {Low: 1, Medium: 2, High: 3};
@@ -345,6 +361,8 @@ function renderCharts(competitors){
     const t = ['Low','Medium','High'].includes(c.threat_level) ? c.threat_level : 'Medium';
     threatCounts[t]++;
   });
+
+  const commonOpts = { responsive: true, maintainAspectRatio: false };
 
   const pieCtx = document.getElementById('chart-threat-pie');
   if(pieCtx){
@@ -358,6 +376,7 @@ function renderCharts(competitors){
         }]
       },
       options: {
+        ...commonOpts,
         plugins: { legend: { labels: { color: '#F2EDE1' } } }
       }
     });
@@ -376,6 +395,7 @@ function renderCharts(competitors){
         }]
       },
       options: {
+        ...commonOpts,
         scales: {
           y: { min: 0, max: 3, ticks: { color: '#8593A6', stepSize: 1, callback: v => ['','Low','Medium','High'][v] } },
           x: { ticks: { color: '#8593A6' } }
@@ -405,6 +425,7 @@ function renderCharts(competitors){
         ]
       },
       options: {
+        ...commonOpts,
         scales: {
           y: { ticks: { color: '#8593A6', stepSize: 1 } },
           x: { ticks: { color: '#8593A6' } }
@@ -467,4 +488,4 @@ function downloadExport(type){
   .catch(err => {
     document.getElementById('copy-confirm').textContent = 'Download failed: ' + err.message;
   });
-}
+      }
