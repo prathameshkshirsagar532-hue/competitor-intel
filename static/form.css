@@ -251,7 +251,8 @@ table.matrix tr.you td.rowhead{color:var(--amber);}
   padding:24px;
 }
 .chart-card.full-width{grid-column:1 / -1;}
-.chart-card canvas{max-height:260px;}
+.chart-card{height:320px;display:flex;flex-direction:column;}
+.chart-card canvas{flex:1;max-height:260px;width:100% !important;}
 
 /* ===== STRATEGIC ADVICE ===== */
 .advice-panel{
