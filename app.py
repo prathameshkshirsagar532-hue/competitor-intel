@@ -64,9 +64,9 @@ def analyze():
     "dimensions": [string, string, string, string],
     "rows": {{ "CompanyOrCompetitorName": [string, string, string, string] (max 5 words each, one row per company AND per competitor) }}
   }},
-  "recommendations": [string, string, string] (max 16 words each)
+"recommendations": [string, string, string] (max 16 words each),
+  "strategic_advice": string (max 60 words, a consultant-style paragraph giving overall strategic direction)
 }}
-
 Keep every string short, punchy, analyst-briefing tone. No fluff.
 
 Subject company: {company_name}{f' ({company_domain})' if company_domain else ''}.
@@ -126,11 +126,16 @@ def build_report_lines(data):
         lines.append(("p", "Recent moves: " + "; ".join(c.get("recent_moves", []))))
         lines.append(("p", f"Pricing: {c.get('pricing_signal','')}"))
 
-    recs = data.get("recommendations", [])
+recs = data.get("recommendations", [])
     if recs:
         lines.append(("h2", "Recommendations"))
         for i, r in enumerate(recs, 1):
             lines.append(("p", f"{i}. {r}"))
+
+    advice = data.get("strategic_advice", "")
+    if advice:
+        lines.append(("h2", "Strategic Advice"))
+        lines.append(("p", advice))
 
     return lines
 
