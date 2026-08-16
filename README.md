@@ -1,8 +1,6 @@
 <div align="center">
 <img src="banner.svg" width="100%" alt="Competitor Intel banner">
 
-<div align="center">
-
 # 🔴 COMPETITOR INTEL
 
 ### *Field intelligence for competitive strategy*
@@ -84,6 +82,7 @@ Get a free Gemini API key at [aistudio.google.com/apikey](https://aistudio.googl
 ## Project structure
 
 ```
+
 competitor-intel/
 ├── app.py                  # Flask app: routes + AI analysis + PDF/DOCX export
 ├── requirements.txt
