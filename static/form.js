@@ -204,6 +204,7 @@ function renderReport(data, input){
   const competitors = data.competitors || [];
   const matrix = data.comparison_matrix || {dimensions: [], rows: {}};
   const recs = data.recommendations || [];
+  const advice = data.strategic_advice || '';
 
   const today = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
 
@@ -263,6 +264,23 @@ function renderReport(data, input){
   });
   html += `</div>`;
 
+  html += `
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="card-label mono">Threat distribution</div>
+        <canvas id="chart-threat-pie"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-label mono">Threat level by competitor</div>
+        <canvas id="chart-threat-bar"></canvas>
+      </div>
+      <div class="chart-card full-width">
+        <div class="card-label mono">Strengths vs weaknesses</div>
+        <canvas id="chart-sw-bar"></canvas>
+      </div>
+    </div>
+  `;
+
   if(matrix.dimensions && matrix.dimensions.length){
     html += `<div class="section-title">Comparison matrix</div>`;
     html += `<div class="matrix-wrap"><table class="matrix"><thead><tr><th></th>`;
@@ -277,6 +295,15 @@ function renderReport(data, input){
       html += `</tr>`;
     });
     html += `</tbody></table></div>`;
+  }
+
+  if(advice){
+    html += `
+      <div class="advice-panel">
+        <span class="card-label mono">Strategic advice</span>
+        <p>${esc(advice)}</p>
+      </div>
+    `;
   }
 
   if(recs.length){
@@ -303,6 +330,89 @@ function renderReport(data, input){
 
   document.getElementById('report-body').innerHTML = html;
   window.__lastReportData = data;
+  renderCharts(competitors);
+}
+
+function renderCharts(competitors){
+  if(typeof Chart === 'undefined' || competitors.length === 0) return;
+
+  const threatMap = {Low: 1, Medium: 2, High: 3};
+  const colors = {Low: '#8593A6', Medium: '#E8A33D', High: '#C0392B'};
+
+  const names = competitors.map(c => c.name);
+  const threatCounts = {Low: 0, Medium: 0, High: 0};
+  competitors.forEach(c => {
+    const t = ['Low','Medium','High'].includes(c.threat_level) ? c.threat_level : 'Medium';
+    threatCounts[t]++;
+  });
+
+  const pieCtx = document.getElementById('chart-threat-pie');
+  if(pieCtx){
+    new Chart(pieCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Low', 'Medium', 'High'],
+        datasets: [{
+          data: [threatCounts.Low, threatCounts.Medium, threatCounts.High],
+          backgroundColor: [colors.Low, colors.Medium, colors.High]
+        }]
+      },
+      options: {
+        plugins: { legend: { labels: { color: '#F2EDE1' } } }
+      }
+    });
+  }
+
+  const barCtx = document.getElementById('chart-threat-bar');
+  if(barCtx){
+    new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels: names,
+        datasets: [{
+          label: 'Threat Level',
+          data: competitors.map(c => threatMap[c.threat_level] || 2),
+          backgroundColor: competitors.map(c => colors[c.threat_level] || colors.Medium)
+        }]
+      },
+      options: {
+        scales: {
+          y: { min: 0, max: 3, ticks: { color: '#8593A6', stepSize: 1, callback: v => ['','Low','Medium','High'][v] } },
+          x: { ticks: { color: '#8593A6' } }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  const swCtx = document.getElementById('chart-sw-bar');
+  if(swCtx){
+    new Chart(swCtx, {
+      type: 'bar',
+      data: {
+        labels: names,
+        datasets: [
+          {
+            label: 'Strengths',
+            data: competitors.map(c => (c.strengths || []).length),
+            backgroundColor: '#E8A33D'
+          },
+          {
+            label: 'Weaknesses',
+            data: competitors.map(c => (c.weaknesses || []).length),
+            backgroundColor: '#C0392B'
+          }
+        ]
+      },
+      options: {
+        scales: {
+          y: { ticks: { color: '#8593A6', stepSize: 1 } },
+          x: { ticks: { color: '#8593A6' } }
+        },
+        plugins: { legend: { labels: { color: '#F2EDE1' } } }
+      }
+    });
+  }
 }
 
 // ===== COPY AS TEXT =====
@@ -318,6 +428,9 @@ function copyReport(){
     text += `Recent moves: ${(c.recent_moves||[]).join('; ')}\n`;
     text += `Pricing: ${c.pricing_signal}\n\n`;
   });
+  if(data.strategic_advice){
+    text += `Strategic Advice:\n${data.strategic_advice}\n\n`;
+  }
   text += `Recommendations:\n` + (data.recommendations||[]).map((r,i)=>`${i+1}. ${r}`).join('\n');
 
   navigator.clipboard.writeText(text).then(()=>{
@@ -354,4 +467,4 @@ function downloadExport(type){
   .catch(err => {
     document.getElementById('copy-confirm').textContent = 'Download failed: ' + err.message;
   });
-    }
+}
