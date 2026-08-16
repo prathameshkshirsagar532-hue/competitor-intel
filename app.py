@@ -126,7 +126,7 @@ def build_report_lines(data):
         lines.append(("p", "Recent moves: " + "; ".join(c.get("recent_moves", []))))
         lines.append(("p", f"Pricing: {c.get('pricing_signal','')}"))
 
-recs = data.get("recommendations", [])
+    recs = data.get("recommendations", [])
     if recs:
         lines.append(("h2", "Recommendations"))
         for i, r in enumerate(recs, 1):
