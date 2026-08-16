@@ -134,7 +134,6 @@ def build_report_lines(data):
 
     return lines
 
-
 @app.route("/api/export/pdf", methods=["POST"])
 def export_pdf():
     data = request.get_json()
@@ -143,24 +142,33 @@ def export_pdf():
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_left_margin(15)
+    pdf.set_right_margin(15)
 
     for kind, text in lines:
         safe_text = text.encode("latin-1", "replace").decode("latin-1")
+        if not safe_text.strip():
+            continue
+
+        pdf.set_x(pdf.l_margin)
+
         if kind == "h1":
             pdf.set_font("Helvetica", "B", 18)
-            pdf.multi_cell(0, 10, safe_text)
+            pdf.multi_cell(0, 10, safe_text, new_x="LMARGIN", new_y="NEXT")
             pdf.ln(2)
         elif kind == "h2":
-            pdf.set_font("Helvetica", "B", 14)
             pdf.ln(4)
-            pdf.multi_cell(0, 8, safe_text)
+            pdf.set_x(pdf.l_margin)
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.multi_cell(0, 8, safe_text, new_x="LMARGIN", new_y="NEXT")
         elif kind == "h3":
-            pdf.set_font("Helvetica", "B", 12)
             pdf.ln(3)
-            pdf.multi_cell(0, 7, safe_text)
+            pdf.set_x(pdf.l_margin)
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.multi_cell(0, 7, safe_text, new_x="LMARGIN", new_y="NEXT")
         else:
             pdf.set_font("Helvetica", "", 11)
-            pdf.multi_cell(0, 6, safe_text)
+            pdf.multi_cell(0, 6, safe_text, new_x="LMARGIN", new_y="NEXT")
             pdf.ln(1)
 
     pdf_bytes = bytes(pdf.output())
@@ -173,8 +181,6 @@ def export_pdf():
         download_name="case_file.pdf",
         mimetype="application/pdf",
     )
-
-
 @app.route("/api/export/docx", methods=["POST"])
 def export_docx():
     data = request.get_json()
